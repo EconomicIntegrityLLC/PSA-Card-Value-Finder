@@ -70,6 +70,7 @@ st.markdown('<span style="color: #00FF00; font-size: 14px;">Economic Integrity L
 
 # Page list for sidebar navigation
 PAGES = [
+    "Home",
     "CollX Collection",
     "2021 Topps S1",
     "Search",
@@ -108,7 +109,132 @@ with st.sidebar:
     st.markdown(f"**Grading Cost:** ${GRADING_COST}")
     st.markdown("Only grade if PSA 8+ condition and $100+ value")
 
-if page == "CollX Collection":
+if page == "Home":
+    # ── Hero Section ──────────────────────────────────────────────────
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+                padding: 40px; border-radius: 12px; margin-bottom: 24px; text-align: center;">
+        <h1 style="color: #e94560; margin: 0; font-size: 2.4em;">PSA Card Value Finder</h1>
+        <p style="color: #ccc; font-size: 1.2em; margin: 12px 0 0 0;">
+            Stop guessing. Start knowing what your cards are worth.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ── The Problem ───────────────────────────────────────────────────
+    st.markdown("### The Problem")
+    st.markdown("""
+    Card collectors face the same frustrations every day:
+
+    - **"Is this card worth grading?"** — PSA charges $28+ per card. Sending the wrong card is money down the drain.
+    - **"What's this card actually selling for?"** — Searching eBay sold listings one card at a time is painfully slow.
+    - **"I have thousands of cards — where do I even start?"** — Sorting through boxes without a plan means missing hidden value.
+    - **"I don't know which sets, years, or parallels to look for."** — The hobby changes fast, and keeping up is a full-time job.
+    """)
+
+    st.markdown("---")
+
+    # ── What This Tool Does ───────────────────────────────────────────
+    st.markdown("### What This Tool Does")
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("""
+        **📦 Collection Browser**
+
+        Import your full CollX collection and instantly search, filter, and sort every card you own.
+        One click takes you straight to eBay sold listings — raw, graded, or active.
+        """)
+    with col2:
+        st.markdown("""
+        **🔍 Instant Price Checks**
+
+        Every card links directly to eBay sold results.
+        See what raw cards sell for, what graded copies go for, and what's listed right now.
+        No more manual searching.
+        """)
+    with col3:
+        st.markdown("""
+        **📊 Built-In Reference Data**
+
+        Key players, valuable sets, junk wax gems, parallels worth chasing — it's all here.
+        Curated checklists with eBay links so you can verify value in seconds.
+        """)
+
+    st.markdown("---")
+
+    # ── Pages at a Glance ─────────────────────────────────────────────
+    st.markdown("### Pages at a Glance")
+
+    pages_info = [
+        ("📦 CollX Collection", "Browse your entire card collection with search, filters, and one-click eBay sold lookups for every card."),
+        ("⚾ 2021 Topps S1", "Full searchable checklist with card numbers, insert prefixes, RC flags, and eBay links for raw, graded, and active listings."),
+        ("🔍 Search", "Custom eBay lookup — enter any player, year, set, and grade to find sold comps instantly."),
+        ("🅰️ Athletes A-Z", "Every key athlete in the database with direct links to their PSA graded sold results ($100+)."),
+        ("📅 Sets by Year", "50 years of sets (1975–2025) across all sports — click any set to see PSA sold results."),
+        ("📆 By Year & Sport", "Browse by year and league (MLB, NFL, NBA, NHL) for graded sold results."),
+        ("📦 Junk Wax Gems", "The few cards from 1987–1992 actually worth grading. PSA 10 or bust."),
+        ("🏀 90s NBA", "90s basketball stars — quick links to their sold results."),
+        ("🌈 Parallels & Inserts", "Prizm, Optic, Refractors, numbered cards, premium inserts — all with eBay links."),
+        ("🔥 Key Sets & Players", "Tier 1 sets and key players from the reference database."),
+        ("📝 eBay Listings", "Generate complete eBay listings with title, description, and item specifics — ready to copy and paste."),
+    ]
+
+    html = ['<table style="width:100%;border-collapse:collapse;font-size:14px;">']
+    for page_name, desc in pages_info:
+        html.append(f'<tr style="border-bottom:1px solid #333;">')
+        html.append(f'<td style="padding:8px 12px;font-weight:bold;white-space:nowrap;vertical-align:top;">{page_name}</td>')
+        html.append(f'<td style="padding:8px 12px;color:#bbb;">{desc}</td>')
+        html.append('</tr>')
+    html.append('</table>')
+    st.markdown(''.join(html), unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ── Who This Is For ───────────────────────────────────────────────
+    st.markdown("### Who This Is For")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("""
+        **Collectors** who want to know if anything in their collection is valuable before it sits in a closet for another decade.
+
+        **Flippers & Resellers** who need fast comps while sorting at card shows, estate sales, and thrift stores.
+        """)
+    with col2:
+        st.markdown("""
+        **Grading Submitters** who want to avoid wasting $28/card on PSA submissions that won't return a profit.
+
+        **eBay Sellers** who need to generate listings quickly with accurate titles and item specifics.
+        """)
+
+    st.markdown("---")
+
+    # ── Roadmap ───────────────────────────────────────────────────────
+    st.markdown("### Roadmap — What's Next")
+    st.markdown("""
+    This is an MVP. Here's where it's headed:
+
+    | Phase | Feature | What It Does |
+    |-------|---------|-------------|
+    | **Next** | **CSV Upload** | Any user uploads their CollX/TCDB export and gets instant value analysis |
+    | **Next** | **eBay Affiliate Links** | Every eBay link earns revenue — passive monetization from day one |
+    | **Soon** | **Price Alerts** | Get notified when a card in your collection sells above a threshold |
+    | **Soon** | **Collection Value Report** | Upload your CSV, get a PDF showing your top 20 most valuable cards with comps |
+    | **Later** | **Barcode Scanning** | Scan a card with your phone camera, instantly see value and comps |
+    | **Later** | **Price History Database** | Build our own sold price database — the "Kelley Blue Book" for trading cards |
+    | **Later** | **AI Card Grading** | Upload card photos, get an estimated grade before you send to PSA |
+    """)
+
+    st.markdown("---")
+
+    # ── Get Started ───────────────────────────────────────────────────
+    st.markdown("### Get Started")
+    st.info("👈 **Use the sidebar** to navigate to any page. Start with **CollX Collection** to browse your cards, or use **Search** to look up any card on eBay.")
+    st.markdown("")
+    st.markdown('<span style="color: #00FF00; font-size: 13px;">Built by Economic Integrity LLC — Created 1/29/26</span>', unsafe_allow_html=True)
+
+elif page == "CollX Collection":
     st.header("📦 My CollX Collection — Full Searchable Checklist")
     st.caption("Your entire CollX export. Search by **player**, **card #**, **team**, **year**, **brand**, or **set**. eBay links: Sold, No Autos.")
 
