@@ -1,6 +1,6 @@
 """
-PSA Card Value Finder - Streamlit App
-Quick reference for identifying cards worth grading while sorting.
+Sports Card Value Sniper - Streamlit App
+Find the spread between raw and graded prices. Snipe the best grading plays.
 """
 
 import streamlit as st
@@ -13,7 +13,7 @@ import urllib.parse
 LOGO_PATH = os.path.join(os.path.dirname(__file__), "logo.png")
 
 st.set_page_config(
-    page_title="PSA Card Value Finder — Economic Integrity",
+    page_title="Sports Card Value Sniper — Economic Integrity",
     page_icon=LOGO_PATH if os.path.exists(LOGO_PATH) else "🃏",
     layout="wide"
 )
@@ -71,8 +71,8 @@ with _logo_col:
     if os.path.exists(LOGO_PATH):
         st.image(LOGO_PATH, width=60)
 with _title_col:
-    st.title("PSA Card Value Finder")
-    st.markdown("**Find cards worth grading** — Quick reference tool")
+    st.title("Sports Card Value Sniper")
+    st.markdown("**Find the spread. Snipe the profit.** — Raw vs. Graded price tool")
 st.markdown('<span style="color: #00FF00; font-size: 14px;">Economic Integrity LLC IP — Created 1/29/26</span>', unsafe_allow_html=True)
 
 # Page list for sidebar navigation
@@ -121,22 +121,27 @@ if page == "Home":
     st.markdown("""
     <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
                 padding: 40px; border-radius: 12px; margin-bottom: 24px; text-align: center;">
-        <h1 style="color: #e94560; margin: 0; font-size: 2.4em;">PSA Card Value Finder</h1>
-        <p style="color: #ccc; font-size: 1.2em; margin: 12px 0 0 0;">
-            Stop guessing. Start knowing what your cards are worth.
+        <h1 style="color: #e94560; margin: 0; font-size: 2.4em;">Sports Card Value Sniper</h1>
+        <p style="color: #ccc; font-size: 1.2em; margin: 12px 0 4px 0;">
+            Find the spread between raw and graded prices. Snipe the profit.
+        </p>
+        <p style="color: #888; font-size: 0.95em; margin: 0;">
+            Most cards aren't worth grading. This tool helps you find the ones that are.
         </p>
     </div>
     """, unsafe_allow_html=True)
 
-    # ── The Problem ───────────────────────────────────────────────────
-    st.markdown("### The Problem")
+    # ── The Grading Problem ───────────────────────────────────────────
+    st.markdown("### Why Most Grading Submissions Lose Money")
     st.markdown("""
-    Card collectors face the same frustrations every day:
+    Here's the reality of card grading in 2026:
 
-    - **"Is this card worth grading?"** — PSA charges $28+ per card. Sending the wrong card is money down the drain.
-    - **"What's this card actually selling for?"** — Searching eBay sold listings one card at a time is painfully slow.
-    - **"I have thousands of cards — where do I even start?"** — Sorting through boxes without a plan means missing hidden value.
-    - **"I don't know which sets, years, or parallels to look for."** — The hobby changes fast, and keeping up is a full-time job.
+    - **PSA charges $28+ per card** with a **4+ month turnaround**. That's real money and real time tied up.
+    - **Most cards sell for the same price raw or graded.** If a raw card sells for $8 and a PSA 9 sells for $12, you just lost $20 after grading fees.
+    - **The only grading plays worth making are cards with a massive spread** between mint raw and PSA 8+ prices. A card that sells for $5 raw but $80 graded? That's a snipe.
+    - **You need to check comps before you submit** — not after. One bad submission costs you more than a month of this tool.
+
+    **The formula is simple:** Raw price + $28 grading fee + 4 months of your time < Graded sold price. If the math doesn't work, don't send it.
     """)
 
     st.markdown("---")
@@ -147,26 +152,39 @@ if page == "Home":
     col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown("""
-        **📦 Collection Browser**
+        **🎯 Find the Spread**
 
-        Import your full CollX collection and instantly search, filter, and sort every card you own.
-        One click takes you straight to eBay sold listings — raw, graded, or active.
+        Every card has links to both **raw sold prices** and **graded sold prices** side by side.
+        You see the spread instantly — no more guessing if a card is worth submitting.
         """)
     with col2:
         st.markdown("""
-        **🔍 Instant Price Checks**
+        **📦 Browse Your Collection**
 
-        Every card links directly to eBay sold results.
-        See what raw cards sell for, what graded copies go for, and what's listed right now.
-        No more manual searching.
+        Import your CollX collection and search, filter, and sort every card you own.
+        One click takes you to eBay sold listings — raw, graded, or active.
         """)
     with col3:
         st.markdown("""
-        **📊 Built-In Reference Data**
+        **📊 Curated Reference Data**
 
-        Key players, valuable sets, junk wax gems, parallels worth chasing — it's all here.
-        Curated checklists with eBay links so you can verify value in seconds.
+        Key players, valuable sets, junk wax gems, parallels worth chasing — all pre-loaded.
+        Checklists with eBay links so you can verify value in seconds.
         """)
+
+    st.markdown("---")
+
+    # ── The Sniper's Playbook ─────────────────────────────────────────
+    st.markdown("### The Sniper's Playbook")
+    st.markdown("""
+    <div style="background: rgba(233,69,96,0.08); border-left: 4px solid #e94560; padding: 16px 20px; border-radius: 4px; font-size: 14px;">
+        <b>Step 1:</b> Search for your card (by player, set, year, or card number)<br>
+        <b>Step 2:</b> Click <b>🃏 Raw</b> — see what ungraded copies sell for<br>
+        <b>Step 3:</b> Click <b>🏆 Graded</b> — see what PSA/BGS copies sell for<br>
+        <b>Step 4:</b> If the graded price is <b>3x+ the raw price</b> and covers the $28 fee + your time → <b>submit it</b><br>
+        <b>Step 5:</b> If not → <b>sell it raw</b> and move on. Don't tie up money for 4 months on a bad play.
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -174,8 +192,8 @@ if page == "Home":
     st.markdown("### Pages at a Glance")
 
     pages_info = [
-        ("📦 CollX Collection", "Browse your entire card collection with search, filters, and one-click eBay sold lookups for every card."),
-        ("⚾ 2021 Topps S1", "Full searchable checklist with card numbers, insert prefixes, RC flags, and eBay links for raw, graded, and active listings."),
+        ("📦 CollX Collection", "Browse your entire collection with search, filters, and one-click eBay lookups — raw, graded, and active listings for every card."),
+        ("⚾ 2021 Topps S1", "Full searchable checklist with card numbers, insert prefixes, RC flags, and eBay links to compare raw vs. graded prices."),
         ("🔍 Search", "Custom eBay lookup — enter any player, year, set, and grade to find sold comps instantly."),
         ("🅰️ Athletes A-Z", "Every key athlete in the database with direct links to their PSA graded sold results ($100+)."),
         ("📅 Sets by Year", "50 years of sets (1975–2025) across all sports — click any set to see PSA sold results."),
@@ -204,15 +222,15 @@ if page == "Home":
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("""
-        **Collectors** who want to know if anything in their collection is valuable before it sits in a closet for another decade.
+        **Collectors** sitting on boxes of cards who want to know if anything is actually worth submitting — before wasting $28 and 4 months.
 
-        **Flippers & Resellers** who need fast comps while sorting at card shows, estate sales, and thrift stores.
+        **Flippers & Resellers** who need instant comps at card shows, estate sales, and thrift stores to snipe underpriced cards.
         """)
     with col2:
         st.markdown("""
-        **Grading Submitters** who want to avoid wasting $28/card on PSA submissions that won't return a profit.
+        **Grading Submitters** who want to only send cards where the raw-to-graded spread covers the fee and then some.
 
-        **eBay Sellers** who need to generate listings quickly with accurate titles and item specifics.
+        **eBay Sellers** who need to price competitively and generate listings fast with accurate item specifics.
         """)
 
     st.markdown("---")
@@ -226,9 +244,9 @@ if page == "Home":
     |-------|---------|-------------|
     | **Next** | **CSV Upload** | Any user uploads their CollX/TCDB export and gets instant value analysis |
     | **Next** | **eBay Affiliate Links** | Every eBay link earns revenue — passive monetization from day one |
-    | **Soon** | **Price Alerts** | Get notified when a card in your collection sells above a threshold |
+    | **Soon** | **Spread Calculator** | Auto-calculate the raw vs. graded spread and flag the best grading plays |
     | **Soon** | **Collection Value Report** | Upload your CSV, get a PDF showing your top 20 most valuable cards with comps |
-    | **Later** | **Barcode Scanning** | Scan a card with your phone camera, instantly see value and comps |
+    | **Later** | **Price Alerts** | Get notified when a card in your collection sells above a threshold |
     | **Later** | **Price History Database** | Build our own sold price database — the "Kelley Blue Book" for trading cards |
     | **Later** | **AI Card Grading** | Upload card photos, get an estimated grade before you send to PSA |
     """)
@@ -237,7 +255,7 @@ if page == "Home":
 
     # ── Get Started ───────────────────────────────────────────────────
     st.markdown("### Get Started")
-    st.info("👈 **Use the sidebar** to navigate to any page. Start with **CollX Collection** to browse your cards, or use **Search** to look up any card on eBay.")
+    st.info("👈 **Use the sidebar** to navigate to any page. Start with **CollX Collection** to browse your cards, or use **Search** to look up any card on eBay. Compare the 🃏Raw and 🏆Graded links on every card to find the spread.")
 
     st.markdown("---")
 
