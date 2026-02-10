@@ -156,6 +156,8 @@ with st.sidebar:
     <div style="font-size:12px;line-height:2;">
         <a href="https://www.psacard.com/priceguide" target="_blank" style="color:#aaa;text-decoration:none;">📊 PSA Price Guide</a><br>
         <a href="https://130point.com/sales/" target="_blank" style="color:#aaa;text-decoration:none;">🔍 130point Sales Data</a><br>
+        <a href="https://www.ebay.com/usr/economicintegrity" target="_blank" style="color:#aaa;text-decoration:none;">🛒 Our eBay Store</a><br>
+        <a href="https://collx.app/EconomicIntegrity" target="_blank" style="color:#aaa;text-decoration:none;">📦 CollX Profile</a><br>
         <a href="https://economicintegrity.substack.com/" target="_blank" style="color:#aaa;text-decoration:none;">📝 Substack Newsletter</a><br>
         <a href="https://altprops.com" target="_blank" style="color:#aaa;text-decoration:none;">🏈 AltProps.com</a><br>
         <a href="https://footballstool.com" target="_blank" style="color:#aaa;text-decoration:none;">🏟️ FootballStool.com</a>
@@ -558,6 +560,19 @@ elif page == "CollX Collection":
             yc_html.append(f'<div><b>{yr}</b> ({count})</div>')
         yc_html.append('</div>')
         st.markdown(''.join(yc_html), unsafe_allow_html=True)
+
+    # ── Connect with us ───────────────────────────────────────────────
+    st.markdown("")
+    st.markdown("""
+    <div style="background:rgba(79,172,254,0.06);border:1px solid #333;border-radius:8px;padding:14px 18px;font-size:13px;color:#bbb;line-height:1.7;">
+        <b style="color:#ccc;">Looking to buy, sell, or trade?</b><br>
+        Find us on
+        <a href="https://collx.app/EconomicIntegrity" target="_blank" style="color:#4CAF50;text-decoration:none;font-weight:600;">CollX @EconomicIntegrity</a>
+        or browse our
+        <a href="https://www.ebay.com/usr/economicintegrity" target="_blank" style="color:#4CAF50;text-decoration:none;font-weight:600;">eBay store</a>.
+        Always happy to chat cards.
+    </div>
+    """, unsafe_allow_html=True)
 
 elif page == "Athletes A-Z":
     st.header("Athletes A-Z - PSA Graded $100+")
