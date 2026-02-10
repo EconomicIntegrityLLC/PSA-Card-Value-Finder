@@ -96,11 +96,11 @@ PAGES = [
 with st.sidebar:
     # ── Branding ──────────────────────────────────────────────────────
     if os.path.exists(LOGO_PATH):
-        _sb_logo_col, _sb_text_col = st.columns([0.25, 0.75])
+        _sb_logo_col, _sb_text_col = st.columns([0.22, 0.78])
         with _sb_logo_col:
-            st.image(LOGO_PATH, width=48)
+            st.image(LOGO_PATH, width=50)
         with _sb_text_col:
-            st.markdown('<p style="margin:0;font-size:15px;font-weight:700;line-height:1.2;">Sports Card<br>Value Sniper</p>', unsafe_allow_html=True)
+            st.markdown('<p style="margin:0;padding-top:4px;font-size:18px;font-weight:800;line-height:1.25;letter-spacing:-0.3px;">Sports Card<br>Value Sniper</p>', unsafe_allow_html=True)
     else:
         st.markdown("**Sports Card Value Sniper**")
 
