@@ -150,13 +150,25 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # ── Quick links ───────────────────────────────────────────────────
+    # ── Links ─────────────────────────────────────────────────────────
+    st.markdown('<p style="margin:0 0 4px 0;font-size:13px;font-weight:600;">🔗 Links</p>', unsafe_allow_html=True)
     st.markdown("""
-    <div style="font-size:12px;line-height:1.8;">
-        <a href="https://www.psacard.com/priceguide" target="_blank" style="color:#888;text-decoration:none;">📊 PSA Price Guide</a><br>
-        <a href="https://130point.com/sales/" target="_blank" style="color:#888;text-decoration:none;">🔍 130point Sales</a><br>
-        <a href="https://altprops.com" target="_blank" style="color:#888;text-decoration:none;">🏈 AltProps.com</a><br>
-        <a href="https://footballstool.com" target="_blank" style="color:#888;text-decoration:none;">🏟️ FootballStool.com</a>
+    <div style="font-size:12px;line-height:2;">
+        <a href="https://www.psacard.com/priceguide" target="_blank" style="color:#aaa;text-decoration:none;">📊 PSA Price Guide</a><br>
+        <a href="https://130point.com/sales/" target="_blank" style="color:#aaa;text-decoration:none;">🔍 130point Sales Data</a><br>
+        <a href="https://economicintegrity.substack.com/" target="_blank" style="color:#aaa;text-decoration:none;">📝 Substack Newsletter</a><br>
+        <a href="https://altprops.com" target="_blank" style="color:#aaa;text-decoration:none;">🏈 AltProps.com</a><br>
+        <a href="https://footballstool.com" target="_blank" style="color:#aaa;text-decoration:none;">🏟️ FootballStool.com</a>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ── Contact & Copyright ───────────────────────────────────────────
+    st.markdown("""
+    <div style="font-size:11px;color:#666;line-height:1.6;text-align:center;">
+        <a href="mailto:Economic_integrity@outlook.com" style="color:#4CAF50;text-decoration:none;">💬 Questions / Ideas? Email us</a><br>
+        <span style="margin-top:4px;display:inline-block;">© 2026 Economic Integrity LLC</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -310,12 +322,26 @@ if page == "Home":
 
     - **[AltProps.com](https://altprops.com)** — Alternative sports props and analytics
     - **[FootballStool.com](https://footballstool.com)** — Football research tools and data-driven insights
+    - **[Substack Newsletter](https://economicintegrity.substack.com/)** — Updates, card market insights, and new tool announcements
 
     We build tools that give everyday people an edge. More coming soon.
     """)
 
-    st.markdown("")
-    st.markdown('<span style="color: #00FF00; font-size: 13px;">Built by Economic Integrity LLC — Created 1/29/26</span>', unsafe_allow_html=True)
+    st.markdown("---")
+
+    # ── Contact ───────────────────────────────────────────────────────
+    st.markdown("""
+    <div style="text-align:center;padding:16px 0;">
+        <p style="font-size:15px;font-weight:600;margin:0 0 6px 0;color:#ccc;">Comments / Questions / Ideas?</p>
+        <a href="mailto:Economic_integrity@outlook.com" style="color:#4CAF50;text-decoration:none;font-size:14px;">📧 Economic_integrity@outlook.com</a>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div style="text-align:center;padding:8px 0;font-size:12px;color:#555;">
+        © 2026 Economic Integrity LLC. All rights reserved.
+    </div>
+    """, unsafe_allow_html=True)
 
 elif page == "CollX Collection":
     st.header("📦 My CollX Collection — Full Searchable Checklist")
@@ -1192,15 +1218,15 @@ elif page == "2021 Topps S1":
 # Footer
 st.markdown("---")
 st.markdown("""
-**How to use:** Browse your collection, click eBay links to check real sold prices.
-Only grade cards that are PSA 8+ condition AND sell for $100+ graded.
-""")
-st.markdown("""
-<div style="text-align:center;font-size:13px;color:#888;margin:8px 0;">
-    <span style="color: #00FF00;">Economic Integrity LLC</span> · Created 1/29/26
-    &nbsp;·&nbsp;
+<div style="text-align:center;font-size:13px;color:#888;line-height:2;">
     <a href="https://altprops.com" target="_blank" style="color:#4CAF50;text-decoration:none;">AltProps.com</a>
     &nbsp;·&nbsp;
     <a href="https://footballstool.com" target="_blank" style="color:#4CAF50;text-decoration:none;">FootballStool.com</a>
+    &nbsp;·&nbsp;
+    <a href="https://economicintegrity.substack.com/" target="_blank" style="color:#4CAF50;text-decoration:none;">Substack</a>
+    &nbsp;·&nbsp;
+    <a href="mailto:Economic_integrity@outlook.com" style="color:#4CAF50;text-decoration:none;">Contact Us</a>
+    <br>
+    <span style="font-size:11px;color:#555;">© 2026 Economic Integrity LLC. All rights reserved.</span>
 </div>
 """, unsafe_allow_html=True)
