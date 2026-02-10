@@ -71,3 +71,6 @@ desktop.ini
 
 # eBay upload working files
 ebay_uploads/
+
+# Large Panini CSV checklists (data extracted to .py files; scripts in scripts/)
+panini-checklists-csv-files/

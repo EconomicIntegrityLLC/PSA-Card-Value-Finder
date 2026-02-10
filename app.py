@@ -80,6 +80,12 @@ PAGES = [
     "Home",
     "CollX Collection",
     "2021 Topps S1",
+    "2026 Topps S1",
+    "2025 Prizm Football",
+    "2021 Prizm Football",
+    "2021 Mosaic Football",
+    "2021 Select Football",
+    "2020 Prizm Basketball",
     "Search",
     "Athletes A-Z",
     "Sets by Year",
@@ -252,6 +258,12 @@ if page == "Home":
     pages_info = [
         ("📦 CollX Collection", "Browse your entire collection with search, filters, and one-click eBay lookups — raw, graded, and active listings for every card."),
         ("⚾ 2021 Topps S1", "Full searchable checklist with card numbers, insert prefixes, RC flags, and eBay links to compare raw vs. graded prices."),
+        ("⚾ 2026 Topps S1", "75th Anniversary MLB base set — 350 cards with search and eBay links."),
+        ("🏈 2025 Prizm Football", "400-card checklist (300 base + 100 rookies) with search, filters, and eBay links."),
+        ("🏈 2021 Prizm Football", "330 base cards with search and eBay links."),
+        ("🏈 2021 Mosaic Football", "200 base cards with search and eBay links."),
+        ("🏀 2020 Prizm Basketball", "300 base cards with search and eBay links."),
+        ("🏈 2021 Select Football", "300 base cards (Premier 101-200, Club 201-300, Field 301-400) with search and eBay links."),
         ("🔍 Search", "Custom eBay lookup — enter any player, year, set, and grade to find sold comps instantly."),
         ("🅰️ Athletes A-Z", "Every key athlete in the database with direct links to their PSA graded sold results ($100+)."),
         ("📅 Sets by Year", "50 years of sets (1975–2025) across all sports — click any set to see PSA sold results."),
@@ -1229,6 +1241,507 @@ elif page == "2021 Topps S1":
             pref_html.append(f'<div><a href="{url}" target="_blank"><b>{code}</b></a> — {name[:35]} <span style="color:#888;">({ctype})</span></div>')
         pref_html.append('</div>')
         st.markdown(''.join(pref_html), unsafe_allow_html=True)
+
+elif page == "2026 Topps S1":
+    st.header("⚾ 2026 Topps Series 1 — Full Searchable Checklist")
+    st.caption("75th Anniversary Set · Release Feb 11, 2026 · Search by **player name**, **card number**, **team**, or **notes**. All eBay links: Sold, No Autos.")
+
+    from data.topps_2026_s1 import ALL_CARDS, PREFIX_INFO
+
+    checklist_search = st.text_input(
+        "🔍 Search the checklist",
+        placeholder="e.g. Aaron Judge, 1, Yankees, RC...",
+        key="checklist_2026_search"
+    ).strip()
+
+    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+    with col_f1:
+        filter_type = st.selectbox("Card Type", ["All", "Base Only", "Inserts Only", "RC Only"], key="filter_type_2026")
+    with col_f2:
+        show_max = st.selectbox("Show max results", [50, 100, 200, 350, 999], index=0, key="show_max_2026")
+    with col_f3:
+        min_price_filter = st.selectbox("Min eBay Price", [5, 10, 25, 50], index=0, key="min_price_2026")
+    with col_f4:
+        SEARCH_FORMATS = [
+            "2026 Topps + Player",
+            "2026 Topps S1 + Player",
+            "2026 Topps + # + Player",
+            "2026 Topps S1 + # + Player",
+            "2026 Topps + # + Player + Team",
+            "2026 Topps S1 + # + Player + Team",
+        ]
+        search_fmt = st.selectbox("eBay Search Format", SEARCH_FORMATS, index=2, key="search_fmt_2026")
+
+    results = ALL_CARDS
+    search_lower = checklist_search.lower()
+
+    if search_lower:
+        results = [
+            c for c in results
+            if search_lower in c[0].lower() or search_lower in c[1].lower() or search_lower in c[2].lower()
+            or search_lower in c[3].lower() or search_lower in c[4].lower()
+        ]
+
+    if filter_type == "Base Only":
+        results = [c for c in results if c[3] == "Base"]
+    elif filter_type == "Inserts Only":
+        results = [c for c in results if c[3] != "Base"]
+    elif filter_type == "RC Only":
+        results = [c for c in results if "RC" in c[4]]
+
+    SORT_OPTIONS = {
+        "Card # (default)": lambda c: (c[0].zfill(10) if c[0].isdigit() else c[0]),
+        "Player A-Z": lambda c: c[1].lower(),
+        "Player Z-A": lambda c: c[1].lower(),
+        "Team A-Z": lambda c: c[2].lower(),
+        "Type": lambda c: c[3].lower(),
+    }
+    sort_choice = st.selectbox("Sort by", list(SORT_OPTIONS.keys()), index=0, key="sort_2026")
+    reverse_sort = sort_choice == "Player Z-A"
+    results = sorted(results, key=SORT_OPTIONS[sort_choice], reverse=reverse_sort)
+
+    total_matches = len(results)
+    results = results[:show_max]
+
+    st.markdown(f"**{total_matches}** cards found" + (f" (showing first {show_max})" if total_matches > show_max else ""))
+
+    prefix_upper = checklist_search.strip().upper()
+    if prefix_upper and PREFIX_INFO and prefix_upper in PREFIX_INFO:
+        pinfo = PREFIX_INFO[prefix_upper]
+        st.info(f"**{prefix_upper}** = {pinfo[0]} ({pinfo[1]}) — Parallels: {pinfo[2]}")
+
+    if results:
+        html = ['<table style="width:100%;border-collapse:collapse;font-size:13px;">']
+        html.append('<tr style="border-bottom:2px solid #555;text-align:left;">')
+        html.append('<th style="padding:4px 8px;">Card #</th>')
+        html.append('<th style="padding:4px 8px;">Player</th>')
+        html.append('<th style="padding:4px 8px;">Team</th>')
+        html.append('<th style="padding:4px 8px;">Type</th>')
+        html.append('<th style="padding:4px 8px;">Notes</th>')
+        html.append('<th style="padding:4px 8px;">eBay Sold $' + str(min_price_filter) + '+</th>')
+        html.append('</tr>')
+
+        for card_num, player_name, team, card_type, notes in results:
+            is_base = card_type == "Base" and card_num.isdigit()
+            num_str = f"#{card_num}" if is_base else card_num
+            s1 = "Series 1 " if "S1" in search_fmt else ""
+            if "+ # + Player + Team" in search_fmt:
+                ebay_q = f"2026 Topps {s1}{num_str} {player_name} {team}"
+            elif "+ # + Player" in search_fmt:
+                ebay_q = f"2026 Topps {s1}{num_str} {player_name}"
+            elif "S1 + Player" in search_fmt:
+                ebay_q = f"2026 Topps Series 1 {player_name}"
+            else:
+                ebay_q = f"2026 Topps {player_name}"
+            url_raw = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True, exclude_graded=True)
+            url_graded = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True, graded_only=True)
+            url_all = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True)
+
+            e_num = html_mod.escape(card_num)
+            e_player = html_mod.escape(player_name)
+            e_team = html_mod.escape(team)
+            e_type = html_mod.escape(card_type.replace("Insert ", ""))
+            e_notes = html_mod.escape(notes)
+
+            row_bg = ""
+            if "RC" in notes:
+                row_bg = ' style="background-color:rgba(0,200,0,0.08);"'
+            elif card_type != "Base":
+                row_bg = ' style="background-color:rgba(100,100,255,0.06);"'
+
+            note_display = f'<span style="color:#FF6B6B;font-weight:bold;">{e_notes}</span>' if notes else ""
+
+            html.append(f'<tr{row_bg}>')
+            html.append(f'<td style="padding:3px 8px;font-weight:bold;">{e_num}</td>')
+            html.append(f'<td style="padding:3px 8px;">{e_player}</td>')
+            html.append(f'<td style="padding:3px 8px;color:#888;font-size:12px;">{e_team}</td>')
+            html.append(f'<td style="padding:3px 8px;font-size:12px;">{e_type}</td>')
+            html.append(f'<td style="padding:3px 8px;">{note_display}</td>')
+            html.append(f'<td style="padding:3px 8px;white-space:nowrap;">')
+            html.append(f'<a href="{url_raw}" target="_blank" title="Raw/Ungraded">🃏Raw</a>')
+            html.append(f' · <a href="{url_graded}" target="_blank" title="Graded PSA/BGS/SGC">🏆Graded</a>')
+            html.append(f' · <a href="{url_all}" target="_blank" title="All">📋All</a>')
+            html.append('</td></tr>')
+
+        html.append('</table>')
+        st.markdown(''.join(html), unsafe_allow_html=True)
+    else:
+        st.warning("No cards found. Try a different search term.")
+
+    if PREFIX_INFO:
+        st.markdown("---")
+        with st.expander("📋 Insert Set Prefixes — Quick Reference"):
+            pref_html = ['<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px 12px;font-size:13px;">']
+            for code, (name, ctype, parallels) in PREFIX_INFO.items():
+                url = ebay_search_url(f"2026 Topps {name}", sold=True, min_price=5, exclude_auto=True)
+                pref_html.append(f'<div><a href="{url}" target="_blank"><b>{code}</b></a> — {name[:35]} <span style="color:#888;">({ctype})</span></div>')
+            pref_html.append('</div>')
+            st.markdown(''.join(pref_html), unsafe_allow_html=True)
+
+elif page == "2025 Prizm Football":
+    st.header("🏈 2025 Panini Prizm Football — Full Searchable Checklist")
+    st.caption("Release Feb 2, 2026 · Search by **player name**, **card number**, or **team**. All eBay links: Sold, No Autos.")
+
+    from data.panini_prizm_2025_football import ALL_CARDS, PREFIX_INFO
+
+    checklist_search = st.text_input(
+        "🔍 Search the checklist",
+        placeholder="e.g. Caleb Williams, Travis Hunter, Bears, RC...",
+        key="checklist_prizm_search"
+    ).strip()
+
+    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+    with col_f1:
+        filter_type = st.selectbox("Card Type", ["All", "Base Only", "Rookies Only", "RC Only"], key="filter_type_prizm")
+    with col_f2:
+        show_max = st.selectbox("Show max results", [50, 100, 200, 400, 999], index=0, key="show_max_prizm")
+    with col_f3:
+        min_price_filter = st.selectbox("Min eBay Price", [5, 10, 25, 50], index=0, key="min_price_prizm")
+    with col_f4:
+        SEARCH_FORMATS = [
+            "2025 Prizm Football + Player",
+            "2025 Panini Prizm + Player",
+            "2025 Prizm + # + Player",
+            "2025 Panini Prizm + # + Player",
+            "2025 Prizm + # + Player + Team",
+            "2025 Panini Prizm + # + Player + Team",
+        ]
+        search_fmt = st.selectbox("eBay Search Format", SEARCH_FORMATS, index=1, key="search_fmt_prizm")
+
+    results = ALL_CARDS
+    search_lower = checklist_search.lower()
+
+    if search_lower:
+        results = [
+            c for c in results
+            if search_lower in c[0].lower() or search_lower in c[1].lower() or search_lower in c[2].lower()
+            or search_lower in c[3].lower() or search_lower in c[4].lower()
+        ]
+
+    if filter_type == "Base Only":
+        results = [c for c in results if c[3] == "Base"]
+    elif filter_type == "Rookies Only":
+        results = [c for c in results if c[3] == "Rookie"]
+    elif filter_type == "RC Only":
+        results = [c for c in results if "RC" in c[4]]
+
+    SORT_OPTIONS = {
+        "Card # (default)": lambda c: (c[0].zfill(10) if c[0].isdigit() else c[0]),
+        "Player A-Z": lambda c: c[1].lower(),
+        "Player Z-A": lambda c: c[1].lower(),
+        "Team A-Z": lambda c: c[2].lower(),
+        "Type": lambda c: c[3].lower(),
+    }
+    sort_choice = st.selectbox("Sort by", list(SORT_OPTIONS.keys()), index=0, key="sort_prizm")
+    reverse_sort = sort_choice == "Player Z-A"
+    results = sorted(results, key=SORT_OPTIONS[sort_choice], reverse=reverse_sort)
+
+    total_matches = len(results)
+    results = results[:show_max]
+
+    st.markdown(f"**{total_matches}** cards found" + (f" (showing first {show_max})" if total_matches > show_max else ""))
+
+    prefix_upper = checklist_search.strip().upper()
+    if prefix_upper and PREFIX_INFO and prefix_upper in PREFIX_INFO:
+        pinfo = PREFIX_INFO[prefix_upper]
+        st.info(f"**{prefix_upper}** = {pinfo[0]} ({pinfo[1]}) — Parallels: {pinfo[2]}")
+
+    if results:
+        html = ['<table style="width:100%;border-collapse:collapse;font-size:13px;">']
+        html.append('<tr style="border-bottom:2px solid #555;text-align:left;">')
+        html.append('<th style="padding:4px 8px;">Card #</th>')
+        html.append('<th style="padding:4px 8px;">Player</th>')
+        html.append('<th style="padding:4px 8px;">Team</th>')
+        html.append('<th style="padding:4px 8px;">Type</th>')
+        html.append('<th style="padding:4px 8px;">Notes</th>')
+        html.append('<th style="padding:4px 8px;">eBay Sold $' + str(min_price_filter) + '+</th>')
+        html.append('</tr>')
+
+        for card_num, player_name, team, card_type, notes in results:
+            is_base = (card_type == "Base" or card_type == "Rookie") and card_num.isdigit()
+            num_str = f"#{card_num}" if is_base else card_num
+            panini = "Panini " if "Panini" in search_fmt else ""
+            if "+ # + Player + Team" in search_fmt:
+                ebay_q = f"2025 {panini}Prizm {num_str} {player_name} {team}"
+            elif "+ # + Player" in search_fmt:
+                ebay_q = f"2025 {panini}Prizm {num_str} {player_name}"
+            else:
+                ebay_q = f"2025 {panini}Prizm Football {player_name}"
+            url_raw = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True, exclude_graded=True)
+            url_graded = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True, graded_only=True)
+            url_all = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True)
+
+            e_num = html_mod.escape(card_num)
+            e_player = html_mod.escape(player_name)
+            e_team = html_mod.escape(team)
+            e_type = html_mod.escape(card_type.replace("Insert ", ""))
+            e_notes = html_mod.escape(notes)
+
+            row_bg = ""
+            if "RC" in notes:
+                row_bg = ' style="background-color:rgba(0,200,0,0.08);"'
+            elif card_type == "Rookie":
+                row_bg = ' style="background-color:rgba(0,200,0,0.08);"'
+
+            note_display = f'<span style="color:#FF6B6B;font-weight:bold;">{e_notes}</span>' if notes else ""
+
+            html.append(f'<tr{row_bg}>')
+            html.append(f'<td style="padding:3px 8px;font-weight:bold;">{e_num}</td>')
+            html.append(f'<td style="padding:3px 8px;">{e_player}</td>')
+            html.append(f'<td style="padding:3px 8px;color:#888;font-size:12px;">{e_team}</td>')
+            html.append(f'<td style="padding:3px 8px;font-size:12px;">{e_type}</td>')
+            html.append(f'<td style="padding:3px 8px;">{note_display}</td>')
+            html.append(f'<td style="padding:3px 8px;white-space:nowrap;">')
+            html.append(f'<a href="{url_raw}" target="_blank" title="Raw/Ungraded">🃏Raw</a>')
+            html.append(f' · <a href="{url_graded}" target="_blank" title="Graded PSA/BGS/SGC">🏆Graded</a>')
+            html.append(f' · <a href="{url_all}" target="_blank" title="All">📋All</a>')
+            html.append('</td></tr>')
+
+        html.append('</table>')
+        st.markdown(''.join(html), unsafe_allow_html=True)
+    else:
+        st.warning("No cards found. Try a different search term.")
+
+    if PREFIX_INFO:
+        st.markdown("---")
+        with st.expander("📋 Set Reference — Quick Links"):
+            pref_html = ['<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px 12px;font-size:13px;">']
+            for code, (name, ctype, parallels) in PREFIX_INFO.items():
+                url = ebay_search_url(f"2025 Panini Prizm {name}", sold=True, min_price=5, exclude_auto=True)
+                pref_html.append(f'<div><a href="{url}" target="_blank"><b>{code}</b></a> — {name[:35]} <span style="color:#888;">({ctype})</span></div>')
+            pref_html.append('</div>')
+            st.markdown(''.join(pref_html), unsafe_allow_html=True)
+
+elif page == "2021 Prizm Football":
+    st.header("🏈 2021 Panini Prizm Football — Base Checklist")
+    st.caption("330 base cards · Search by **player name**, **card number**, or **team**. All eBay links: Sold, No Autos.")
+
+    from data.panini_prizm_2021_football import ALL_CARDS, PREFIX_INFO
+
+    checklist_search = st.text_input(
+        "🔍 Search the checklist",
+        placeholder="e.g. Justin Herbert, Mac Jones, Chiefs, 1...",
+        key="checklist_prizm21_search"
+    ).strip()
+
+    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+    with col_f1:
+        filter_type = st.selectbox("Card Type", ["All", "Base Only"], key="filter_type_prizm21")
+    with col_f2:
+        show_max = st.selectbox("Show max results", [50, 100, 200, 330, 999], index=0, key="show_max_prizm21")
+    with col_f3:
+        min_price_filter = st.selectbox("Min eBay Price", [5, 10, 25, 50], index=0, key="min_price_prizm21")
+    with col_f4:
+        SEARCH_FORMATS = [
+            "2021 Prizm Football + Player",
+            "2021 Panini Prizm + Player",
+            "2021 Prizm + # + Player",
+            "2021 Panini Prizm + # + Player",
+        ]
+        search_fmt = st.selectbox("eBay Search Format", SEARCH_FORMATS, index=1, key="search_fmt_prizm21")
+
+    search_lower = checklist_search.lower()
+    results = [c for c in ALL_CARDS if not search_lower or search_lower in str(c[0]).lower() or search_lower in c[1].lower() or search_lower in c[2].lower() or search_lower in c[3].lower() or search_lower in c[4].lower()]
+    if filter_type == "Base Only":
+        results = [c for c in results if c[3] == "Base"]
+    total_matches = len(results)
+    results = sorted(results, key=lambda c: (c[0].zfill(10) if c[0].isdigit() else c[0]))[:show_max]
+    st.markdown(f"**{total_matches}** cards found" + (f" (showing first {show_max})" if total_matches > show_max else ""))
+
+    if results:
+        html = ['<table style="width:100%;border-collapse:collapse;font-size:13px;">']
+        html.append('<tr style="border-bottom:2px solid #555;text-align:left;"><th style="padding:4px 8px;">Card #</th><th style="padding:4px 8px;">Player</th><th style="padding:4px 8px;">Team</th><th style="padding:4px 8px;">Type</th><th style="padding:4px 8px;">eBay Sold $' + str(min_price_filter) + '+</th></tr>')
+        for card_num, player_name, team, card_type, notes in results:
+            num_str = f"#{card_num}" if card_num.isdigit() else card_num
+            panini = "Panini " if "Panini" in search_fmt else ""
+            ebay_q = f"2021 {panini}Prizm {num_str} {player_name}" if "+ # +" in search_fmt else f"2021 {panini}Prizm Football {player_name}"
+            url_raw = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True, exclude_graded=True)
+            url_graded = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True, graded_only=True)
+            url_all = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True)
+            e_num, e_player, e_team = html_mod.escape(card_num), html_mod.escape(player_name), html_mod.escape(team)
+            html.append(f'<tr><td style="padding:3px 8px;font-weight:bold;">{e_num}</td><td style="padding:3px 8px;">{e_player}</td><td style="padding:3px 8px;color:#888;">{e_team}</td><td style="padding:3px 8px;">{card_type}</td><td style="padding:3px 8px;white-space:nowrap;"><a href="{url_raw}" target="_blank">🃏Raw</a> · <a href="{url_graded}" target="_blank">🏆Graded</a> · <a href="{url_all}" target="_blank">📋All</a></td></tr>')
+        html.append('</table>')
+        st.markdown(''.join(html), unsafe_allow_html=True)
+    else:
+        st.warning("No cards found. Try a different search term.")
+
+elif page == "2021 Mosaic Football":
+    st.header("🏈 2021 Panini Mosaic Football — Base Checklist")
+    st.caption("200 base cards · Search by **player name**, **card number**, or **team**. All eBay links: Sold, No Autos.")
+
+    from data.panini_mosaic_2021_football import ALL_CARDS, PREFIX_INFO
+
+    checklist_search = st.text_input(
+        "🔍 Search the checklist",
+        placeholder="e.g. Patrick Mahomes, Lamar Jackson, Chiefs...",
+        key="checklist_mosaic21_search"
+    ).strip()
+
+    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+    with col_f1:
+        filter_type = st.selectbox("Card Type", ["All", "Base Only"], key="filter_type_mosaic21")
+    with col_f2:
+        show_max = st.selectbox("Show max results", [50, 100, 200, 999], index=0, key="show_max_mosaic21")
+    with col_f3:
+        min_price_filter = st.selectbox("Min eBay Price", [5, 10, 25, 50], index=0, key="min_price_mosaic21")
+    with col_f4:
+        SEARCH_FORMATS = [
+            "2021 Mosaic Football + Player",
+            "2021 Panini Mosaic + Player",
+            "2021 Mosaic + # + Player",
+            "2021 Panini Mosaic + # + Player",
+        ]
+        search_fmt = st.selectbox("eBay Search Format", SEARCH_FORMATS, index=1, key="search_fmt_mosaic21")
+
+    search_lower = checklist_search.lower()
+    results = [c for c in ALL_CARDS if not search_lower or search_lower in str(c[0]).lower() or search_lower in c[1].lower() or search_lower in c[2].lower() or search_lower in c[3].lower() or search_lower in c[4].lower()]
+    if filter_type == "Base Only":
+        results = [c for c in results if c[3] == "Base"]
+    total_matches = len(results)
+    results = sorted(results, key=lambda c: (c[0].zfill(10) if c[0].isdigit() else c[0]))[:show_max]
+    st.markdown(f"**{total_matches}** cards found" + (f" (showing first {show_max})" if total_matches > show_max else ""))
+
+    if results:
+        html = ['<table style="width:100%;border-collapse:collapse;font-size:13px;">']
+        html.append('<tr style="border-bottom:2px solid #555;text-align:left;"><th style="padding:4px 8px;">Card #</th><th style="padding:4px 8px;">Player</th><th style="padding:4px 8px;">Team</th><th style="padding:4px 8px;">Type</th><th style="padding:4px 8px;">eBay Sold $' + str(min_price_filter) + '+</th></tr>')
+        for card_num, player_name, team, card_type, notes in results:
+            num_str = f"#{card_num}" if card_num.isdigit() else card_num
+            panini = "Panini " if "Panini" in search_fmt else ""
+            ebay_q = f"2021 {panini}Mosaic {num_str} {player_name}" if "+ # +" in search_fmt else f"2021 {panini}Mosaic Football {player_name}"
+            url_raw = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True, exclude_graded=True)
+            url_graded = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True, graded_only=True)
+            url_all = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True)
+            e_num, e_player, e_team = html_mod.escape(card_num), html_mod.escape(player_name), html_mod.escape(team)
+            html.append(f'<tr><td style="padding:3px 8px;font-weight:bold;">{e_num}</td><td style="padding:3px 8px;">{e_player}</td><td style="padding:3px 8px;color:#888;">{e_team}</td><td style="padding:3px 8px;">{card_type}</td><td style="padding:3px 8px;white-space:nowrap;"><a href="{url_raw}" target="_blank">🃏Raw</a> · <a href="{url_graded}" target="_blank">🏆Graded</a> · <a href="{url_all}" target="_blank">📋All</a></td></tr>')
+        html.append('</table>')
+        st.markdown(''.join(html), unsafe_allow_html=True)
+    else:
+        st.warning("No cards found. Try a different search term.")
+
+elif page == "2021 Select Football":
+    st.header("🏈 2021 Panini Select Football — Base Checklist")
+    st.caption("300 base cards in 3 tiers: Premier (101-200), Club (201-300), Field (301-400) — Search by **player**, **card #**, or **team**. eBay links: Sold, No Autos.")
+
+    from data.panini_select_2021_football import ALL_CARDS, PREFIX_INFO
+
+    checklist_search = st.text_input(
+        "🔍 Search the checklist",
+        placeholder="e.g. Tom Brady, Mac Jones, 247, Premier...",
+        key="checklist_select21_search"
+    ).strip()
+
+    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+    with col_f1:
+        filter_type = st.selectbox("Tier", ["All", "Premier Only", "Club Only", "Field Only"], key="filter_type_select21")
+    with col_f2:
+        show_max = st.selectbox("Show max results", [50, 100, 200, 300, 999], index=0, key="show_max_select21")
+    with col_f3:
+        min_price_filter = st.selectbox("Min eBay Price", [5, 10, 25, 50], index=0, key="min_price_select21")
+    with col_f4:
+        SEARCH_FORMATS = [
+            "2021 Select Football + Player",
+            "2021 Panini Select + Player",
+            "2021 Select + # + Player",
+            "2021 Panini Select + # + Player",
+        ]
+        search_fmt = st.selectbox("eBay Search Format", SEARCH_FORMATS, index=1, key="search_fmt_select21")
+
+    search_lower = checklist_search.lower()
+    results = [c for c in ALL_CARDS if not search_lower or search_lower in str(c[0]).lower() or search_lower in c[1].lower() or search_lower in c[2].lower() or search_lower in c[3].lower() or search_lower in c[4].lower()]
+    if filter_type == "Premier Only":
+        results = [c for c in results if c[3] == "Premier"]
+    elif filter_type == "Club Only":
+        results = [c for c in results if c[3] == "Club"]
+    elif filter_type == "Field Only":
+        results = [c for c in results if c[3] == "Field"]
+    total_matches = len(results)
+    results = sorted(results, key=lambda c: (c[3], c[0].zfill(10) if c[0].isdigit() else c[0]))[:show_max]
+    st.markdown(f"**{total_matches}** cards found" + (f" (showing first {show_max})" if total_matches > show_max else ""))
+
+    prefix_upper = checklist_search.strip().upper()
+    if prefix_upper and PREFIX_INFO and prefix_upper in PREFIX_INFO:
+        pinfo = PREFIX_INFO[prefix_upper]
+        st.info(f"**{prefix_upper}** = {pinfo[0]} ({pinfo[1]}) — {pinfo[2]}")
+
+    if results:
+        html = ['<table style="width:100%;border-collapse:collapse;font-size:13px;">']
+        html.append('<tr style="border-bottom:2px solid #555;text-align:left;"><th style="padding:4px 8px;">Card #</th><th style="padding:4px 8px;">Player</th><th style="padding:4px 8px;">Team</th><th style="padding:4px 8px;">Tier</th><th style="padding:4px 8px;">eBay Sold $' + str(min_price_filter) + '+</th></tr>')
+        for card_num, player_name, team, card_type, notes in results:
+            num_str = f"#{card_num}" if card_num.isdigit() else card_num
+            panini = "Panini " if "Panini" in search_fmt else ""
+            ebay_q = f"2021 {panini}Select {num_str} {player_name}" if "+ # +" in search_fmt else f"2021 {panini}Select Football {player_name}"
+            url_raw = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True, exclude_graded=True)
+            url_graded = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True, graded_only=True)
+            url_all = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True)
+            e_num, e_player, e_team = html_mod.escape(card_num), html_mod.escape(player_name), html_mod.escape(team)
+            html.append(f'<tr><td style="padding:3px 8px;font-weight:bold;">{e_num}</td><td style="padding:3px 8px;">{e_player}</td><td style="padding:3px 8px;color:#888;">{e_team}</td><td style="padding:3px 8px;">{card_type}</td><td style="padding:3px 8px;white-space:nowrap;"><a href="{url_raw}" target="_blank">🃏Raw</a> · <a href="{url_graded}" target="_blank">🏆Graded</a> · <a href="{url_all}" target="_blank">📋All</a></td></tr>')
+        html.append('</table>')
+        st.markdown(''.join(html), unsafe_allow_html=True)
+    else:
+        st.warning("No cards found. Try a different search term.")
+
+    if PREFIX_INFO:
+        st.markdown("---")
+        with st.expander("📋 Tier Reference — Quick Links"):
+            pref_html = ['<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px 12px;font-size:13px;">']
+            for code, (name, ctype, desc) in PREFIX_INFO.items():
+                url = ebay_search_url(f"2021 Panini Select {name}", sold=True, min_price=5, exclude_auto=True)
+                pref_html.append(f'<div><a href="{url}" target="_blank"><b>{code}</b></a> — {name} <span style="color:#888;">({desc})</span></div>')
+            pref_html.append('</div>')
+            st.markdown(''.join(pref_html), unsafe_allow_html=True)
+
+elif page == "2020 Prizm Basketball":
+    st.header("🏀 2020-21 Panini Prizm Basketball — Base Checklist")
+    st.caption("300 base cards · Search by **player name**, **card number**, or **team**. All eBay links: Sold, No Autos.")
+
+    from data.panini_prizm_2020_basketball import ALL_CARDS, PREFIX_INFO
+
+    checklist_search = st.text_input(
+        "🔍 Search the checklist",
+        placeholder="e.g. LeBron James, Anthony Edwards, Lakers...",
+        key="checklist_prizm20bb_search"
+    ).strip()
+
+    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+    with col_f1:
+        filter_type = st.selectbox("Card Type", ["All", "Base Only"], key="filter_type_prizm20bb")
+    with col_f2:
+        show_max = st.selectbox("Show max results", [50, 100, 200, 300, 999], index=0, key="show_max_prizm20bb")
+    with col_f3:
+        min_price_filter = st.selectbox("Min eBay Price", [5, 10, 25, 50], index=0, key="min_price_prizm20bb")
+    with col_f4:
+        SEARCH_FORMATS = [
+            "2021 Prizm Basketball + Player",
+            "2020-21 Panini Prizm + Player",
+            "2021 Prizm + # + Player",
+            "2020-21 Panini Prizm + # + Player",
+        ]
+        search_fmt = st.selectbox("eBay Search Format", SEARCH_FORMATS, index=1, key="search_fmt_prizm20bb")
+
+    search_lower = checklist_search.lower()
+    results = [c for c in ALL_CARDS if not search_lower or search_lower in str(c[0]).lower() or search_lower in c[1].lower() or search_lower in c[2].lower() or search_lower in c[3].lower() or search_lower in c[4].lower()]
+    if filter_type == "Base Only":
+        results = [c for c in results if c[3] == "Base"]
+    total_matches = len(results)
+    results = sorted(results, key=lambda c: (c[0].zfill(10) if c[0].isdigit() else c[0]))[:show_max]
+    st.markdown(f"**{total_matches}** cards found" + (f" (showing first {show_max})" if total_matches > show_max else ""))
+
+    if results:
+        html = ['<table style="width:100%;border-collapse:collapse;font-size:13px;">']
+        html.append('<tr style="border-bottom:2px solid #555;text-align:left;"><th style="padding:4px 8px;">Card #</th><th style="padding:4px 8px;">Player</th><th style="padding:4px 8px;">Team</th><th style="padding:4px 8px;">Type</th><th style="padding:4px 8px;">eBay Sold $' + str(min_price_filter) + '+</th></tr>')
+        for card_num, player_name, team, card_type, notes in results:
+            num_str = f"#{card_num}" if card_num.isdigit() else card_num
+            year = "2020-21 " if "2020-21" in search_fmt else "2021 "
+            ebay_q = f"{year}Panini Prizm {num_str} {player_name}" if "+ # +" in search_fmt else f"{year}Panini Prizm Basketball {player_name}"
+            url_raw = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True, exclude_graded=True)
+            url_graded = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True, graded_only=True)
+            url_all = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True)
+            e_num, e_player, e_team = html_mod.escape(card_num), html_mod.escape(player_name), html_mod.escape(team)
+            html.append(f'<tr><td style="padding:3px 8px;font-weight:bold;">{e_num}</td><td style="padding:3px 8px;">{e_player}</td><td style="padding:3px 8px;color:#888;">{e_team}</td><td style="padding:3px 8px;">{card_type}</td><td style="padding:3px 8px;white-space:nowrap;"><a href="{url_raw}" target="_blank">🃏Raw</a> · <a href="{url_graded}" target="_blank">🏆Graded</a> · <a href="{url_all}" target="_blank">📋All</a></td></tr>')
+        html.append('</table>')
+        st.markdown(''.join(html), unsafe_allow_html=True)
+    else:
+        st.warning("No cards found. Try a different search term.")
 
 # Footer
 st.markdown("---")
