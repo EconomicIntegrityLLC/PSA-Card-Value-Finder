@@ -4,7 +4,6 @@ Quick reference for identifying cards worth grading while sorting.
 """
 
 import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
 import sqlite3
 import os
@@ -70,19 +69,17 @@ st.markdown('<span style="color: #00FF00; font-size: 14px;">Economic Integrity L
 
 # Page list for sidebar navigation
 PAGES = [
-    "2021 Topps S1",
     "CollX Collection",
+    "2021 Topps S1",
+    "Search",
     "Athletes A-Z",
     "Sets by Year",
     "By Year & Sport",
     "Junk Wax Gems",
     "90s NBA",
     "Parallels & Inserts",
-    "Your Cards",
-    "Search",
     "Key Sets",
     "Key Players",
-    "Card Grader",
     "eBay Listings",
 ]
 
@@ -91,10 +88,21 @@ with st.sidebar:
     page = st.selectbox("Navigate", PAGES, index=0)
     st.markdown("---")
     st.header("Quick eBay Lookup")
-    quick_search = st.text_input("Search eBay sold", placeholder="LeBron Prizm PSA 10")
+    quick_search = st.text_input("Search eBay", placeholder="e.g. Ken Griffey Jr 1989 Upper Deck")
+    qs_col1, qs_col2 = st.columns(2)
+    with qs_col1:
+        qs_sold = st.checkbox("Sold only", value=True, key="qs_sold")
+    with qs_col2:
+        qs_graded = st.checkbox("Graded only", value=False, key="qs_graded")
     if quick_search:
-        url = ebay_search_url(quick_search + " PSA", sold=True)
-        st.markdown(f"[🔍 Search eBay SOLD]({url})")
+        q = quick_search
+        url_sold = ebay_search_url(q, sold=True, exclude_auto=True, graded_only=qs_graded)
+        url_active = ebay_search_url(q, sold=False, exclude_auto=True, graded_only=qs_graded)
+        if qs_sold:
+            st.markdown(f"[🔍 eBay SOLD results]({url_sold})")
+        else:
+            st.markdown(f"[🛒 eBay ACTIVE listings]({url_active})")
+        st.caption(f"[sold]({url_sold}) · [active]({url_active})")
     st.markdown("---")
     st.markdown(f"**Grading Cost:** ${GRADING_COST}")
     st.markdown("Only grade if PSA 8+ condition and $100+ value")
@@ -123,16 +131,19 @@ if page == "CollX Collection":
     ).strip()
 
     # ── Filter options ────────────────────────────────────────────────
-    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+    col_f1, col_f2, col_f3, col_f4, col_f5 = st.columns(5)
     with col_f1:
+        all_categories = sorted(collx_df[collx_df['category'] != '']['category'].unique().tolist())
+        cat_filter = st.selectbox("Sport", ["All"] + all_categories, key="collx_cat")
+    with col_f2:
         all_brands = sorted(collx_df[collx_df['brand'] != '']['brand'].unique().tolist())
         brand_filter = st.selectbox("Brand", ["All"] + all_brands, key="collx_brand")
-    with col_f2:
+    with col_f3:
         all_years = sorted(collx_df[collx_df['year'] != '']['year'].unique().tolist(), reverse=True)
         year_filter = st.selectbox("Year", ["All"] + all_years, key="collx_year")
-    with col_f3:
-        show_max_collx = st.selectbox("Show max", [50, 100, 200, 500, 999, 2999], index=1, key="collx_max")
     with col_f4:
+        show_max_collx = st.selectbox("Show max", [50, 100, 200, 500, 999, 2999], index=1, key="collx_max")
+    with col_f5:
         min_price_collx = st.selectbox("Min eBay $", [0, 5, 10, 25, 50], index=0, key="collx_min_price")
 
     # ── eBay search format ────────────────────────────────────────────
@@ -169,6 +180,8 @@ if page == "CollX Collection":
         )
         filtered = filtered[mask]
 
+    if cat_filter != "All":
+        filtered = filtered[filtered['category'] == cat_filter]
     if brand_filter != "All":
         filtered = filtered[filtered['brand'] == brand_filter]
     if year_filter != "All":
@@ -248,6 +261,7 @@ if page == "CollX Collection":
             url_raw = ebay_search_url(ebay_q, sold=True, min_price=mp, exclude_auto=True, exclude_graded=True)
             url_graded = ebay_search_url(ebay_q, sold=True, min_price=mp, exclude_auto=True, graded_only=True)
             url_all = ebay_search_url(ebay_q, sold=True, min_price=mp, exclude_auto=True)
+            url_active = ebay_search_url(ebay_q, sold=False, exclude_auto=True)
 
             # Row styling
             row_bg = ""
@@ -275,6 +289,7 @@ if page == "CollX Collection":
             html.append(f'<a href="{url_raw}" target="_blank" title="Raw/Ungraded sold">🃏Raw</a>')
             html.append(f' · <a href="{url_graded}" target="_blank" title="Graded PSA/BGS/SGC sold">🏆Graded</a>')
             html.append(f' · <a href="{url_all}" target="_blank" title="All sold">📋All</a>')
+            html.append(f' · <a href="{url_active}" target="_blank" title="Active listings now" style="color:#4CAF50;">🛒Buy</a>')
             html.append('</td></tr>')
 
         html.append('</table>')
@@ -661,28 +676,6 @@ elif page == "Parallels & Inserts":
     html.append('</div>')
     st.markdown(''.join(html), unsafe_allow_html=True)
 
-elif page == "Your Cards":
-    st.header("YOUR COLLECTION - Cards to Check")
-    st.markdown("Based on your CollX export - these are the cards worth investigating")
-    
-    with get_db() as conn:
-        cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='your_valuable'")
-        if cursor.fetchone():
-            st.subheader("🔥 Your High-Value Sets")
-            try:
-                high_priority = pd.read_sql_query('''
-                    SELECT set_name, sport, card_count 
-                    FROM your_sets WHERE priority = 3 
-                    ORDER BY card_count DESC LIMIT 20
-                ''', conn)
-                for _, row in high_priority.iterrows():
-                    url = ebay_search_url(f"{row['set_name']} PSA 10", sold=True)
-                    st.markdown(f"**[{row['card_count']}]** {row['set_name']} ({row['sport']}) - [Check eBay]({url})")
-            except:
-                st.info("No collection data found.")
-        else:
-            st.warning("No collection data loaded. Run: python update_from_collection.py")
-
 elif page == "Search":
     st.header("eBay Price Lookup")
     
@@ -746,104 +739,6 @@ elif page == "Key Players":
                         cols[i % 3].markdown(f"[{p}]({url})")
         except:
             st.info("Key players data not loaded.")
-
-elif page == "Card Grader":
-    st.header("🧙‍♂️ Free Card Grader (AI-Powered)")
-    st.markdown("**Upload card images to get instant grading analysis** - Uses Ollama (free, local)")
-    
-    # Check if card_grading module is available
-    try:
-        from card_grading import check_ollama_available, ensure_vision_model, analyze_card_image, format_tier_result
-        import tempfile
-        import os
-        
-        # Check Ollama status
-        ollama_available = check_ollama_available()
-        
-        if not ollama_available:
-            st.error("❌ Ollama is not running!")
-            st.markdown("""
-            **Setup Required:**
-            1. Download Ollama from: https://ollama.com
-            2. Install and start Ollama
-            3. Run in terminal: `ollama pull llava`
-            4. Refresh this page
-            
-            See `SETUP_GRADING.md` for detailed instructions.
-            """)
-        else:
-            st.success("✅ Ollama is running")
-            
-            # Ensure vision model
-            with st.spinner("Checking vision model..."):
-                model_name = ensure_vision_model()
-            
-            if model_name:
-                st.success(f"✅ Vision model ready: `{model_name}`")
-                
-                # Upload images
-                uploaded_files = st.file_uploader(
-                    "Upload card images (up to 10)",
-                    type=['png', 'jpg', 'jpeg'],
-                    accept_multiple_files=True
-                )
-                
-                if uploaded_files:
-                    if len(uploaded_files) > 10:
-                        st.warning("⚠️ Maximum 10 cards per batch. Only first 10 will be analyzed.")
-                        uploaded_files = uploaded_files[:10]
-                    
-                    if st.button("🔍 Analyze Cards", type="primary"):
-                        results_container = st.container()
-                        
-                        with results_container:
-                            for idx, uploaded_file in enumerate(uploaded_files):
-                                st.markdown("---")
-                                st.subheader(f"Card {idx + 1}: {uploaded_file.name}")
-                                
-                                # Display image
-                                col1, col2 = st.columns([1, 2])
-                                
-                                with col1:
-                                    st.image(uploaded_file, caption="Card Front", use_container_width=True)
-                                
-                                with col2:
-                                    # Save to temp file for analysis
-                                    with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
-                                        tmp_file.write(uploaded_file.getvalue())
-                                        tmp_path = tmp_file.name
-                                    
-                                    # Analyze
-                                    with st.spinner("Analyzing card..."):
-                                        result = analyze_card_image(tmp_path, model_name)
-                                    
-                                    # Display result
-                                    if "error" in result:
-                                        st.error(f"❌ {result['error']}")
-                                    else:
-                                        formatted = format_tier_result(result)
-                                        st.markdown(formatted)
-                                    
-                                    # Cleanup temp file
-                                    try:
-                                        os.unlink(tmp_path)
-                                    except:
-                                        pass
-                                
-                                st.markdown("")
-                            
-                            st.markdown("---")
-                            st.info("💡 **Remember:** Front-only grades are ceilings. Backs can lower the grade. Only grade cards that meet your ROI thresholds!")
-            else:
-                st.error("❌ Could not set up vision model. Run: `ollama pull llava`")
-    
-    except ImportError as e:
-        st.error("❌ Card grading module not available")
-        st.code(f"Error: {e}")
-        st.info("Make sure `card_grading.py` is in the same directory as `app.py`")
-    except Exception as e:
-        st.error(f"❌ Error: {e}")
-        st.info("Check `SETUP_GRADING.md` for setup instructions")
 
 elif page == "eBay Listings":
     st.header("📝 eBay Listing Generator")
@@ -1074,7 +969,7 @@ elif page == "2021 Topps S1":
 # Footer
 st.markdown("---")
 st.markdown("""
-**How to use:** Your high-value sets and rookies are in the first tab. Click eBay links to check real sold prices.
+**How to use:** Browse your collection, click eBay links to check real sold prices.
 Only grade cards that are PSA 8+ condition AND sell for $100+ graded.
 """)
 st.markdown('<span style="color: #00FF00; font-size: 14px;">Economic Integrity LLC IP - Created 1/29/26</span>', unsafe_allow_html=True)

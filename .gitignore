@@ -1,8 +1,54 @@
+# ══════════════════════════════════════════════════════════════
 # Large photo/image folders (too big for GitHub)
+# ══════════════════════════════════════════════════════════════
 collx-photos/
 cards/
 
-# Python
+# ══════════════════════════════════════════════════════════════
+# IP / Strategy / Business docs (PROTECT)
+# ══════════════════════════════════════════════════════════════
+BUSINESS_MODEL.md
+MASTER_STRATEGY.md
+PAIN_MINING_PLAYBOOK.md
+LEGAL_PACKAGES.md
+OPEN_SOURCE_PACKAGES.md
+Android_Emulator_Setup_Guide.md
+grading-wizard-gpt/
+
+# ══════════════════════════════════════════════════════════════
+# Ollama / Card Grading (removed from cloud version)
+# ══════════════════════════════════════════════════════════════
+card_grading.py
+CONFIGURE_OLLAMA.md
+FIX_OLLAMA_INSTALL.md
+SETUP_GRADING.md
+WHAT_IS_OLLAMA.md
+QUICK_START_GRADING.txt
+
+# ══════════════════════════════════════════════════════════════
+# Internal tools / scripts (not needed for Streamlit)
+# ══════════════════════════════════════════════════════════════
+download_collx_photos.py
+download_EconomicIntegrity-2026-01-29-023330_collx.csv
+analyze_collection.py
+update_from_collection.py
+generate_ebay_csv.py
+quick_scrape.py
+scraper/
+database.py
+test_*.py
+run.py
+START.bat
+
+# ══════════════════════════════════════════════════════════════
+# Internal notes / readmes (keep only README.md)
+# ══════════════════════════════════════════════════════════════
+README_command-to-run-streamlit-app.py-file_2.5.26
+*readme*command*.md
+
+# ══════════════════════════════════════════════════════════════
+# Python / IDE / OS
+# ══════════════════════════════════════════════════════════════
 __pycache__/
 *.pyc
 *.pyo
@@ -13,24 +59,15 @@ build/
 venv/
 .venv/
 env/
-
-# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# OS
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# Temp/generated
 *.tmp
 *.log
 
 # eBay upload working files
 ebay_uploads/
-
-# Download script (not needed for deployed app)
-download_collx_photos.py

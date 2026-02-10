@@ -1,1 +1,0 @@
-# PSA Card Scraper Package
