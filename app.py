@@ -10,9 +10,11 @@ import os
 import html as html_mod
 import urllib.parse
 
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "logo.png")
+
 st.set_page_config(
-    page_title="PSA Card Grading Finder",
-    page_icon="🃏",
+    page_title="PSA Card Value Finder — Economic Integrity",
+    page_icon=LOGO_PATH if os.path.exists(LOGO_PATH) else "🃏",
     layout="wide"
 )
 
@@ -63,10 +65,15 @@ def ebay_search_url(query, sold=True, min_price=None, exclude_auto=False, exclud
         params["_udlo"] = str(min_price)
     return f"{base}?{urllib.parse.urlencode(params)}"
 
-# Main app
-st.title("🃏 PSA Card Grading Finder")
-st.markdown("**Find cards worth grading** - Quick reference tool")
-st.markdown('<span style="color: #00FF00; font-size: 14px;">Economic Integrity LLC IP - Created 1/29/26</span>', unsafe_allow_html=True)
+# Main app - logo + title
+_logo_col, _title_col = st.columns([0.07, 0.93])
+with _logo_col:
+    if os.path.exists(LOGO_PATH):
+        st.image(LOGO_PATH, width=60)
+with _title_col:
+    st.title("PSA Card Value Finder")
+    st.markdown("**Find cards worth grading** — Quick reference tool")
+st.markdown('<span style="color: #00FF00; font-size: 14px;">Economic Integrity LLC IP — Created 1/29/26</span>', unsafe_allow_html=True)
 
 # Page list for sidebar navigation
 PAGES = [
@@ -231,6 +238,20 @@ if page == "Home":
     # ── Get Started ───────────────────────────────────────────────────
     st.markdown("### Get Started")
     st.info("👈 **Use the sidebar** to navigate to any page. Start with **CollX Collection** to browse your cards, or use **Search** to look up any card on eBay.")
+
+    st.markdown("---")
+
+    # ── More from Economic Integrity ──────────────────────────────────
+    st.markdown("### More from Economic Integrity")
+    st.markdown("""
+    If you enjoy this tool, check out our other projects:
+
+    - **[AltProps.com](https://altprops.com)** — Alternative sports props and analytics
+    - **[FootballStool.com](https://footballstool.com)** — Football research tools and data-driven insights
+
+    We build tools that give everyday people an edge. More coming soon.
+    """)
+
     st.markdown("")
     st.markdown('<span style="color: #00FF00; font-size: 13px;">Built by Economic Integrity LLC — Created 1/29/26</span>', unsafe_allow_html=True)
 
@@ -1112,4 +1133,12 @@ st.markdown("""
 **How to use:** Browse your collection, click eBay links to check real sold prices.
 Only grade cards that are PSA 8+ condition AND sell for $100+ graded.
 """)
-st.markdown('<span style="color: #00FF00; font-size: 14px;">Economic Integrity LLC IP - Created 1/29/26</span>', unsafe_allow_html=True)
+st.markdown("""
+<div style="text-align:center;font-size:13px;color:#888;margin:8px 0;">
+    <span style="color: #00FF00;">Economic Integrity LLC</span> · Created 1/29/26
+    &nbsp;·&nbsp;
+    <a href="https://altprops.com" target="_blank" style="color:#4CAF50;text-decoration:none;">AltProps.com</a>
+    &nbsp;·&nbsp;
+    <a href="https://footballstool.com" target="_blank" style="color:#4CAF50;text-decoration:none;">FootballStool.com</a>
+</div>
+""", unsafe_allow_html=True)
