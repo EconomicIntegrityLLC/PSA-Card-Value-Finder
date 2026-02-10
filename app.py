@@ -94,27 +94,71 @@ PAGES = [
 
 # Sidebar
 with st.sidebar:
-    page = st.selectbox("Navigate", PAGES, index=0)
+    # ── Branding ──────────────────────────────────────────────────────
+    if os.path.exists(LOGO_PATH):
+        _sb_logo_col, _sb_text_col = st.columns([0.25, 0.75])
+        with _sb_logo_col:
+            st.image(LOGO_PATH, width=48)
+        with _sb_text_col:
+            st.markdown('<p style="margin:0;font-size:15px;font-weight:700;line-height:1.2;">Sports Card<br>Value Sniper</p>', unsafe_allow_html=True)
+    else:
+        st.markdown("**Sports Card Value Sniper**")
+
+    # ── Navigation ────────────────────────────────────────────────────
+    page = st.selectbox("Navigate", PAGES, index=0, label_visibility="collapsed")
+
     st.markdown("---")
-    st.header("Quick eBay Lookup")
-    quick_search = st.text_input("Search eBay", placeholder="e.g. Ken Griffey Jr 1989 Upper Deck")
+
+    # ── Quick eBay Search ─────────────────────────────────────────────
+    st.markdown('<p style="margin:0 0 4px 0;font-size:13px;font-weight:600;">🔍 Quick eBay Search</p>', unsafe_allow_html=True)
+    quick_search = st.text_input("Search eBay", placeholder="e.g. Ken Griffey Jr 1989 Upper Deck", label_visibility="collapsed")
     qs_col1, qs_col2 = st.columns(2)
     with qs_col1:
-        qs_sold = st.checkbox("Sold only", value=True, key="qs_sold")
+        qs_sold = st.checkbox("Sold", value=True, key="qs_sold")
     with qs_col2:
-        qs_graded = st.checkbox("Graded only", value=False, key="qs_graded")
+        qs_graded = st.checkbox("Graded", value=False, key="qs_graded")
     if quick_search:
         q = quick_search
         url_sold = ebay_search_url(q, sold=True, exclude_auto=True, graded_only=qs_graded)
         url_active = ebay_search_url(q, sold=False, exclude_auto=True, graded_only=qs_graded)
-        if qs_sold:
-            st.markdown(f"[🔍 eBay SOLD results]({url_sold})")
-        else:
-            st.markdown(f"[🛒 eBay ACTIVE listings]({url_active})")
-        st.caption(f"[sold]({url_sold}) · [active]({url_active})")
+        st.markdown(f"""
+        <div style="display:flex;gap:8px;margin:4px 0;">
+            <a href="{url_sold}" target="_blank" style="flex:1;text-align:center;padding:6px;background:#1a1a2e;border:1px solid #444;border-radius:6px;color:#4CAF50;text-decoration:none;font-size:12px;font-weight:600;">🔍 Sold</a>
+            <a href="{url_active}" target="_blank" style="flex:1;text-align:center;padding:6px;background:#1a1a2e;border:1px solid #444;border-radius:6px;color:#2196F3;text-decoration:none;font-size:12px;font-weight:600;">🛒 Active</a>
+        </div>
+        """, unsafe_allow_html=True)
+
     st.markdown("---")
-    st.markdown(f"**Grading Cost:** ${GRADING_COST}")
-    st.markdown("Only grade if PSA 8+ condition and $100+ value")
+
+    # ── Sniper's Cheat Sheet ──────────────────────────────────────────
+    st.markdown('<p style="margin:0 0 4px 0;font-size:13px;font-weight:600;">🎯 Sniper\'s Cheat Sheet</p>', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style="font-size:12px;line-height:1.6;color:#bbb;">
+        <div style="display:flex;justify-content:space-between;"><span>PSA grading fee</span><span style="color:#e94560;font-weight:600;">${GRADING_COST}</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>PSA turnaround</span><span style="color:#e94560;font-weight:600;">4+ months</span></div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid #333;"><span>Min graded value to profit</span><span style="color:#4CAF50;font-weight:700;">~$80+</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Target spread (raw→graded)</span><span style="color:#4CAF50;font-weight:700;">3x+</span></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("")
+    st.markdown("""
+    <div style="background:rgba(233,69,96,0.1);border-radius:6px;padding:8px 10px;font-size:11px;color:#ccc;line-height:1.5;">
+        <b style="color:#e94560;">Grade it?</b> Only if raw sells for &lt;$20 and PSA 8+ sells for $80+. Otherwise sell raw.
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ── Quick links ───────────────────────────────────────────────────
+    st.markdown("""
+    <div style="font-size:12px;line-height:1.8;">
+        <a href="https://www.psacard.com/priceguide" target="_blank" style="color:#888;text-decoration:none;">📊 PSA Price Guide</a><br>
+        <a href="https://130point.com/sales/" target="_blank" style="color:#888;text-decoration:none;">🔍 130point Sales</a><br>
+        <a href="https://altprops.com" target="_blank" style="color:#888;text-decoration:none;">🏈 AltProps.com</a><br>
+        <a href="https://footballstool.com" target="_blank" style="color:#888;text-decoration:none;">🏟️ FootballStool.com</a>
+    </div>
+    """, unsafe_allow_html=True)
 
 if page == "Home":
     # ── Hero Section ──────────────────────────────────────────────────
