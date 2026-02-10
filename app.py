@@ -7,6 +7,7 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 import os
+import html as html_mod
 import urllib.parse
 
 st.set_page_config(
@@ -231,27 +232,34 @@ if page == "CollX Collection":
         html.append('</tr>')
 
         for _, row in display_df.iterrows():
-            card_num = row['number']
-            player_name = row['name']
-            team = row['team']
-            year = row['year']
-            brand = row['brand']
-            set_name = row['set']
-            flags = row['flags']
-            category = row['category']
+            card_num = html_mod.escape(row['number'])
+            player_name = html_mod.escape(row['name'])
+            team = html_mod.escape(row['team'])
+            year = html_mod.escape(row['year'])
+            brand = html_mod.escape(row['brand'])
+            set_name = html_mod.escape(row['set'])
+            flags = html_mod.escape(row['flags'])
+            category = html_mod.escape(row['category'])
 
-            # Build eBay query based on selected format
+            # Build eBay query using RAW (unescaped) values for URL
+            raw_name = row['name']
+            raw_team = row['team']
+            raw_year = row['year']
+            raw_brand = row['brand']
+            raw_set = row['set']
+            raw_num = row['number']
+
             if collx_search_fmt == "Year + Set + Player":
-                ebay_q = f"{year} {set_name} {player_name}" if set_name else f"{year} {brand} {player_name}"
+                ebay_q = f"{raw_year} {raw_set} {raw_name}" if raw_set else f"{raw_year} {raw_brand} {raw_name}"
             elif collx_search_fmt == "Year + Brand + Player":
-                ebay_q = f"{year} {brand} {player_name}"
+                ebay_q = f"{raw_year} {raw_brand} {raw_name}"
             elif collx_search_fmt == "Year + Brand + # + Player":
-                num_str = f"#{card_num}" if card_num else ""
-                ebay_q = f"{year} {brand} {num_str} {player_name}"
+                num_str = f"#{raw_num}" if raw_num else ""
+                ebay_q = f"{raw_year} {raw_brand} {num_str} {raw_name}"
             elif collx_search_fmt == "Set + Player":
-                ebay_q = f"{set_name} {player_name}" if set_name else f"{brand} {player_name}"
+                ebay_q = f"{raw_set} {raw_name}" if raw_set else f"{raw_brand} {raw_name}"
             else:  # Player + Team
-                ebay_q = f"{player_name} {team}"
+                ebay_q = f"{raw_name} {raw_team}"
 
             ebay_q = ebay_q.strip()
             if not ebay_q or ebay_q == "":
@@ -304,7 +312,7 @@ if page == "CollX Collection":
         bc_html = ['<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px 12px;font-size:13px;">']
         for brand_name, count in brand_counts.items():
             url = ebay_search_url(f"{brand_name} PSA", sold=True, min_price=50, exclude_auto=True)
-            bc_html.append(f'<div><a href="{url}" target="_blank"><b>{brand_name}</b></a> ({count})</div>')
+            bc_html.append(f'<div><a href="{url}" target="_blank"><b>{html_mod.escape(brand_name)}</b></a> ({count})</div>')
         bc_html.append('</div>')
         st.markdown(''.join(bc_html), unsafe_allow_html=True)
 
@@ -913,7 +921,7 @@ elif page == "2021 Topps S1":
         html.append('</tr>')
 
         for card_num, player_name, team, card_type, notes in results:
-            # Build eBay query based on selected search format
+            # Build eBay query based on selected search format (use raw values)
             is_base = card_type == "Base" and card_num.isdigit()
             num_str = f"#{card_num}" if is_base else card_num
             s1 = "Series 1 " if "S1" in search_fmt else ""
@@ -929,6 +937,13 @@ elif page == "2021 Topps S1":
             url_graded = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True, graded_only=True)
             url_all = ebay_search_url(ebay_q, sold=True, min_price=min_price_filter, exclude_auto=True)
 
+            # HTML-escape display values
+            e_num = html_mod.escape(card_num)
+            e_player = html_mod.escape(player_name)
+            e_team = html_mod.escape(team)
+            e_type = html_mod.escape(card_type.replace("Insert ", ""))
+            e_notes = html_mod.escape(notes)
+
             # Row styling — green for RC, blue tint for inserts
             row_bg = ""
             if "RC" in notes:
@@ -936,14 +951,13 @@ elif page == "2021 Topps S1":
             elif card_type != "Base":
                 row_bg = ' style="background-color:rgba(100,100,255,0.06);"'
 
-            type_display = card_type.replace("Insert ", "")
-            note_display = f'<span style="color:#FF6B6B;font-weight:bold;">{notes}</span>' if notes else ""
+            note_display = f'<span style="color:#FF6B6B;font-weight:bold;">{e_notes}</span>' if notes else ""
 
             html.append(f'<tr{row_bg}>')
-            html.append(f'<td style="padding:3px 8px;font-weight:bold;">{card_num}</td>')
-            html.append(f'<td style="padding:3px 8px;">{player_name}</td>')
-            html.append(f'<td style="padding:3px 8px;color:#888;font-size:12px;">{team}</td>')
-            html.append(f'<td style="padding:3px 8px;font-size:12px;">{type_display}</td>')
+            html.append(f'<td style="padding:3px 8px;font-weight:bold;">{e_num}</td>')
+            html.append(f'<td style="padding:3px 8px;">{e_player}</td>')
+            html.append(f'<td style="padding:3px 8px;color:#888;font-size:12px;">{e_team}</td>')
+            html.append(f'<td style="padding:3px 8px;font-size:12px;">{e_type}</td>')
             html.append(f'<td style="padding:3px 8px;">{note_display}</td>')
             html.append(f'<td style="padding:3px 8px;white-space:nowrap;">')
             html.append(f'<a href="{url_raw}" target="_blank" title="Raw/Ungraded">🃏Raw</a>')
