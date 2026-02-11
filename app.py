@@ -532,15 +532,20 @@ elif page == "CollX Collection":
             if flags:
                 flag_display = f'<span style="color:#FF6B6B;font-weight:bold;">{flags}</span>'
 
+            # Strip leading year from set/brand to avoid doubling with Year column
+            set_clean = set_name
+            if year and set_clean.startswith(year + " "):
+                set_clean = set_clean[len(year) + 1:]
+
             # Truncate long set names
-            set_display = set_name if len(set_name) <= 35 else set_name[:32] + "..."
+            set_display = set_clean if len(set_clean) <= 35 else set_clean[:32] + "..."
 
             html.append(f'<tr{row_bg}>')
             html.append(f'<td style="padding:3px 8px;font-weight:bold;">{card_num}</td>')
             html.append(f'<td style="padding:3px 8px;">{player_name}</td>')
             html.append(f'<td style="padding:3px 8px;color:#888;font-size:12px;">{team}</td>')
             html.append(f'<td style="padding:3px 8px;">{year}</td>')
-            html.append(f'<td style="padding:3px 8px;font-size:12px;" title="{set_name}">{set_display}</td>')
+            html.append(f'<td style="padding:3px 8px;font-size:12px;" title="{set_clean}">{set_display}</td>')
             html.append(f'<td style="padding:3px 8px;">{flag_display}</td>')
             html.append(f'<td style="padding:3px 8px;white-space:nowrap;">')
             html.append(f'<a href="{url_raw}" target="_blank" title="Raw/Ungraded sold">🃏Raw</a>')
