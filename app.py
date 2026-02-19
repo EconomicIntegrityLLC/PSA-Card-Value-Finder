@@ -78,6 +78,7 @@ st.markdown('<span style="color: #00FF00; font-size: 14px;">Economic Integrity L
 # Page list for sidebar navigation
 PAGES = [
     "Home",
+    "Store Manager",
     "CollX Collection",
     "2021 Topps S1",
     "2026 Topps S1",
@@ -96,7 +97,6 @@ PAGES = [
     "Key Sets",
     "Key Players",
     "eBay Listings",
-    "Store Manager",
 ]
 
 # Sidebar
