@@ -1755,16 +1755,19 @@ elif page == "2020 Prizm Basketball":
 
 elif page == "Store Manager":
     st.header("🏪 Store Manager — eBay Inventory & Listing Tool")
-    st.caption("Upload your inventory CSV or use the built-in listing generator. Search, filter, and manage every card in your store.")
+    st.caption("Manage your eBay store inventory, generate listings, and track analytics.")
+    st.markdown("[🛒 Card Investors Lounge on eBay](https://www.ebay.com/usr/cardinvestorslounge) · 99.9% positive · 1K+ sold")
 
     store_tab1, store_tab2, store_tab3 = st.tabs(["📦 Inventory Browser", "📝 Listing Generator", "📊 Store Analytics"])
 
     # ── TAB 1: Inventory Browser (CollX pattern) ─────────────────────
     with store_tab1:
-        st.markdown("### Upload Your Inventory")
-        st.markdown("Drop a CSV with your cards. Expected columns: **name**, **year**, **brand**, **set**, **number**, **team**, **category**, **price**, **quantity**. Missing columns are handled gracefully.")
+        CIL_CSV = os.path.join(os.path.dirname(__file__), "data", "card_investors_lounge_inventory.csv")
 
-        uploaded = st.file_uploader("Upload inventory CSV", type=["csv"], key="store_csv")
+        st.markdown("### Store Inventory")
+        st.markdown("Browse the current inventory or upload a new CSV. Works with CollX exports, TCDB, or any card CSV.")
+
+        uploaded = st.file_uploader("Upload inventory CSV (or use pre-loaded)", type=["csv"], key="store_csv")
 
         if uploaded:
             inv_df = pd.read_csv(uploaded, dtype=str).fillna("")
@@ -1773,6 +1776,12 @@ elif page == "Store Manager":
             st.session_state["store_inventory"] = inv_df
         elif "store_inventory" in st.session_state:
             inv_df = st.session_state["store_inventory"]
+        elif os.path.exists(CIL_CSV):
+            inv_df = pd.read_csv(CIL_CSV, dtype=str).fillna("")
+            for col in inv_df.columns:
+                inv_df[col] = inv_df[col].str.strip()
+            st.session_state["store_inventory"] = inv_df
+            st.success(f"Loaded **Card Investors Lounge** inventory ({len(inv_df)} listings)")
         else:
             inv_df = None
 
