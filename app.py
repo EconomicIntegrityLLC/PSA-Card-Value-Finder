@@ -96,6 +96,7 @@ PAGES = [
     "Key Sets",
     "Key Players",
     "eBay Listings",
+    "Store Manager",
 ]
 
 # Sidebar
@@ -1747,6 +1748,259 @@ elif page == "2020 Prizm Basketball":
         st.markdown(''.join(html), unsafe_allow_html=True)
     else:
         st.warning("No cards found. Try a different search term.")
+
+# ---------------------------------------------------------------------------
+# STORE MANAGER
+# ---------------------------------------------------------------------------
+
+elif page == "Store Manager":
+    st.header("🏪 Store Manager — eBay Inventory & Listing Tool")
+    st.caption("Upload your inventory CSV or use the built-in listing generator. Search, filter, and manage every card in your store.")
+
+    store_tab1, store_tab2, store_tab3 = st.tabs(["📦 Inventory Browser", "📝 Listing Generator", "📊 Store Analytics"])
+
+    # ── TAB 1: Inventory Browser (CollX pattern) ─────────────────────
+    with store_tab1:
+        st.markdown("### Upload Your Inventory")
+        st.markdown("Drop a CSV with your cards. Expected columns: **name**, **year**, **brand**, **set**, **number**, **team**, **category**, **price**, **quantity**. Missing columns are handled gracefully.")
+
+        uploaded = st.file_uploader("Upload inventory CSV", type=["csv"], key="store_csv")
+
+        if uploaded:
+            inv_df = pd.read_csv(uploaded, dtype=str).fillna("")
+            for col in inv_df.columns:
+                inv_df[col] = inv_df[col].str.strip()
+            st.session_state["store_inventory"] = inv_df
+        elif "store_inventory" in st.session_state:
+            inv_df = st.session_state["store_inventory"]
+        else:
+            inv_df = None
+
+        if inv_df is not None and len(inv_df) > 0:
+            cols_available = [c.lower() for c in inv_df.columns]
+            inv_df.columns = [c.lower() for c in inv_df.columns]
+
+            name_col = "name" if "name" in cols_available else "player" if "player" in cols_available else None
+
+            store_search = st.text_input(
+                "🔍 Search inventory",
+                placeholder="e.g. LeBron, Prizm, Refractor, Lakers...",
+                key="store_search"
+            ).strip()
+
+            sf1, sf2, sf3, sf4 = st.columns(4)
+            with sf1:
+                if "category" in cols_available:
+                    cats = sorted(inv_df[inv_df["category"] != ""]["category"].unique().tolist())
+                    store_cat = st.selectbox("Sport/Category", ["All"] + cats, key="store_cat")
+                else:
+                    store_cat = "All"
+            with sf2:
+                if "brand" in cols_available:
+                    brands = sorted(inv_df[inv_df["brand"] != ""]["brand"].unique().tolist())
+                    store_brand = st.selectbox("Brand", ["All"] + brands, key="store_brand")
+                else:
+                    store_brand = "All"
+            with sf3:
+                if "year" in cols_available:
+                    years = sorted(inv_df[inv_df["year"] != ""]["year"].unique().tolist(), reverse=True)
+                    store_year = st.selectbox("Year", ["All"] + years, key="store_year")
+                else:
+                    store_year = "All"
+            with sf4:
+                store_max = st.selectbox("Show max", [50, 100, 200, 500], index=1, key="store_max")
+
+            filtered_inv = inv_df.copy()
+            if store_search:
+                sl = store_search.lower()
+                mask = pd.Series([False] * len(filtered_inv), index=filtered_inv.index)
+                for col in filtered_inv.columns:
+                    mask = mask | filtered_inv[col].str.lower().str.contains(sl, na=False)
+                filtered_inv = filtered_inv[mask]
+            if store_cat != "All" and "category" in cols_available:
+                filtered_inv = filtered_inv[filtered_inv["category"] == store_cat]
+            if store_brand != "All" and "brand" in cols_available:
+                filtered_inv = filtered_inv[filtered_inv["brand"] == store_brand]
+            if store_year != "All" and "year" in cols_available:
+                filtered_inv = filtered_inv[filtered_inv["year"] == store_year]
+
+            if name_col and name_col in cols_available:
+                filtered_inv = filtered_inv.sort_values(name_col, ascending=True, na_position="last")
+
+            total_inv = len(filtered_inv)
+            display_inv = filtered_inv.head(store_max)
+
+            s1, s2, s3, s4 = st.columns(4)
+            s1.metric("Total Cards", len(inv_df))
+            s2.metric("Matching", total_inv)
+            if name_col:
+                s3.metric("Unique Players", inv_df[inv_df[name_col] != ""][name_col].nunique())
+            else:
+                s3.metric("Columns", len(inv_df.columns))
+            if "brand" in cols_available:
+                s4.metric("Brands", inv_df[inv_df["brand"] != ""]["brand"].nunique())
+            else:
+                s4.metric("Rows Shown", len(display_inv))
+
+            st.markdown(f"**{total_inv}** cards found" + (f" (showing {store_max})" if total_inv > store_max else ""))
+
+            html_parts = ['<table style="width:100%;border-collapse:collapse;font-size:13px;">']
+            header_cols = [c for c in display_inv.columns if c not in ("front_image", "back_image")]
+            html_parts.append('<tr style="border-bottom:2px solid #555;text-align:left;">')
+            for hc in header_cols:
+                html_parts.append(f'<th style="padding:4px 8px;">{html_mod.escape(hc.title())}</th>')
+            html_parts.append('<th style="padding:4px 8px;">eBay</th></tr>')
+
+            for _, row in display_inv.iterrows():
+                rname = row.get(name_col, "") if name_col else ""
+                ryear = row.get("year", "")
+                rbrand = row.get("brand", "")
+                rset = row.get("set", "")
+                ebay_q = f"{ryear} {rbrand} {rname}".strip()
+                if not ebay_q:
+                    ebay_q = " ".join(str(row.get(c, "")) for c in header_cols[:3]).strip()
+
+                url_sold = ebay_search_url(ebay_q, sold=True, exclude_auto=True)
+                url_active = ebay_search_url(ebay_q, sold=False, exclude_auto=True)
+
+                html_parts.append("<tr>")
+                for hc in header_cols:
+                    val = html_mod.escape(str(row.get(hc, "")))
+                    if len(val) > 40:
+                        val = val[:37] + "..."
+                    html_parts.append(f'<td style="padding:3px 8px;">{val}</td>')
+                html_parts.append(f'<td style="padding:3px 8px;white-space:nowrap;"><a href="{url_sold}" target="_blank">📋Sold</a> · <a href="{url_active}" target="_blank" style="color:#4CAF50;">🛒Active</a></td>')
+                html_parts.append("</tr>")
+
+            html_parts.append("</table>")
+            st.markdown("".join(html_parts), unsafe_allow_html=True)
+        else:
+            st.info(
+                "**No inventory loaded.** Upload a CSV to get started. "
+                "Works with CollX exports, TCDB exports, or any CSV with card data. "
+                "The browser adapts to whatever columns your file has."
+            )
+
+    # ── TAB 2: Listing Generator ─────────────────────────────────────
+    with store_tab2:
+        st.markdown("### Generate eBay Listing")
+        st.markdown("Fill in card details and get a complete, copy-paste-ready eBay listing with all item specifics.")
+
+        with st.form("listing_gen_form"):
+            lg1, lg2 = st.columns(2)
+            with lg1:
+                lg_player = st.text_input("Player Name", key="lg_player")
+                lg_year = st.number_input("Year", min_value=1900, max_value=2030, value=2024, key="lg_year")
+                lg_brand = st.selectbox("Brand", ["Topps", "Panini", "Bowman", "Upper Deck", "Donruss", "Fleer", "Score", "Other"], key="lg_brand")
+                lg_set = st.text_input("Set Name", key="lg_set")
+                lg_sport = st.selectbox("Sport", ["Baseball", "Basketball", "Football", "Hockey"], key="lg_sport")
+            with lg2:
+                lg_team = st.text_input("Team", key="lg_team")
+                lg_number = st.text_input("Card #", key="lg_number")
+                lg_rookie = st.checkbox("Rookie Card (RC)", key="lg_rc")
+                lg_graded = st.checkbox("Graded/Slabbed", key="lg_graded")
+                lg_grade = st.text_input("Grade (e.g. PSA 10)", key="lg_grade") if lg_graded else ""
+                lg_variety = st.text_input("Variety (e.g. Refractor, Prizm, Holo)", value="Base", key="lg_variety")
+                lg_price = st.text_input("Suggested Price", key="lg_price")
+
+            lg_desc = st.text_area("Extra Description (optional)", key="lg_desc")
+
+            if st.form_submit_button("Generate Listing", use_container_width=True):
+                if lg_player:
+                    from ebay_listing_generator import build_full_listing, format_for_copy
+                    listing = build_full_listing(
+                        player=lg_player,
+                        year=lg_year,
+                        set_name=lg_set or lg_brand,
+                        brand=lg_brand,
+                        sport=lg_sport.lower(),
+                        card_number=lg_number,
+                        team=lg_team,
+                        is_rookie=lg_rookie,
+                        is_graded=lg_graded,
+                        grade=lg_grade if lg_graded else "",
+                        condition="Near Mint or Better",
+                        variety=lg_variety,
+                        description_extra=lg_desc,
+                        suggested_price=lg_price,
+                    )
+                    st.markdown("---")
+                    st.markdown("### Generated Listing")
+
+                    st.markdown(f"**Title** (copy this):")
+                    st.code(listing["title"], language=None)
+
+                    st.markdown(f"**Description:**")
+                    st.code(listing["description"], language=None)
+
+                    st.markdown("**Item Specifics:**")
+                    specs_text = "\n".join(f"  {k}: {v}" for k, v in listing["item_specs"].items() if v)
+                    st.code(specs_text, language=None)
+
+                    st.markdown(f"**Price:** {listing['suggested_price']}")
+                    st.markdown(f"**Category:** {listing['category']} ({listing['category_id']})")
+                    st.markdown(f"**Keywords:** {listing['keywords']}")
+
+                    if listing["value_context"]["key_player"]:
+                        st.success("This is a KEY PLAYER in our reference database.")
+                    if listing["value_context"]["tier1_set"]:
+                        st.success("This is a TIER 1 valuable set.")
+                else:
+                    st.error("Please enter at least a player name.")
+
+    # ── TAB 3: Store Analytics ───────────────────────────────────────
+    with store_tab3:
+        st.markdown("### Store Analytics")
+
+        if "store_inventory" in st.session_state:
+            inv = st.session_state["store_inventory"]
+            cols_avail = [c.lower() for c in inv.columns]
+            inv.columns = [c.lower() for c in inv.columns]
+            nc = "name" if "name" in cols_avail else "player" if "player" in cols_avail else None
+
+            a1, a2, a3 = st.columns(3)
+            a1.metric("Total Inventory", len(inv))
+            if nc:
+                a2.metric("Unique Players", inv[inv[nc] != ""][nc].nunique())
+            if "brand" in cols_avail:
+                a3.metric("Brands", inv[inv["brand"] != ""]["brand"].nunique())
+
+            if "category" in cols_avail:
+                st.markdown("#### By Sport/Category")
+                cat_counts = inv[inv["category"] != ""]["category"].value_counts()
+                for cat, cnt in cat_counts.items():
+                    bar = "█" * min(int(cnt / max(cat_counts) * 30), 30)
+                    st.markdown(f"**{cat}** — {cnt} cards  {bar}")
+
+            if "brand" in cols_avail:
+                st.markdown("#### Top Brands")
+                brand_counts = inv[inv["brand"] != ""]["brand"].value_counts().head(15)
+                for brand, cnt in brand_counts.items():
+                    bar = "█" * min(int(cnt / max(brand_counts) * 30), 30)
+                    st.markdown(f"**{brand}** — {cnt} cards  {bar}")
+
+            if nc:
+                st.markdown("#### Top Players (most cards)")
+                player_counts = inv[inv[nc] != ""][nc].value_counts().head(20)
+                for player, cnt in player_counts.items():
+                    bar = "█" * min(int(cnt / max(player_counts) * 20), 20)
+                    st.markdown(f"**{player}** — {cnt} cards  {bar}")
+
+            if "year" in cols_avail:
+                st.markdown("#### Cards by Year")
+                year_counts = inv[inv["year"] != ""]["year"].value_counts().sort_index(ascending=False).head(15)
+                for yr, cnt in year_counts.items():
+                    bar = "█" * min(int(cnt / max(year_counts) * 30), 30)
+                    st.markdown(f"**{yr}** — {cnt} cards  {bar}")
+        else:
+            st.info("Upload inventory in the **Inventory Browser** tab to see analytics.")
+
+        st.markdown("---")
+        st.markdown(
+            "**Coming soon:** Pricing intelligence, sell-through rate tracking, "
+            "and automated restock suggestions. "
+            "[Contact us](mailto:Economic_integrity@outlook.com) to partner."
+        )
 
 # Footer
 st.markdown("---")
